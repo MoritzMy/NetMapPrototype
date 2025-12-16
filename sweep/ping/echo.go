@@ -2,6 +2,7 @@ package ping
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 )
 
@@ -16,42 +17,61 @@ type Marshaler interface {
 	Marshal() ([]byte, error)
 }
 
-type ICMPPacket struct {
-	MessageType uint8
-	Code        uint8
-	Payload        []byte
+type Unmarshaler interface {
+	Unmarshall([]byte) (any, error)
+}
 
+type ICMPPacket struct {
+	Type uint8
+	Code uint8
 }
 
 type EchoRequest struct {
 	ICMPPacket
 	Identifier     uint16
 	SequenceNumber uint16
+	Payload        []byte
 }
 
 func CreateEchoRequest(identifier uint16, sequenceNumber uint16, payload []byte) EchoRequest {
 	return EchoRequest{
 		ICMPPacket: ICMPPacket{
-			MessageType: echoType,
-			Code:        echoCode,
-			Payload:     payload,
-
+			Type: echoType,
+			Code: echoCode,
 		},
 		Identifier:     identifier,
 		SequenceNumber: sequenceNumber,
+		Payload:        payload,
 	}
 }
 
+// Marshal parses the ICMP Type and ICMP Code of the Packet and sets the Checksum Placeholder
 func (packet ICMPPacket) Marshal() ([]byte, error) {
-	if len(packet.Payload) > maxPayload {
-		return nil, fmt.Errorf("payload too large")
-	}
-	
-	b:= make([]byte, 0, 4 + len(packet.Payload))
-	b = append(b, packet.MessageType, packet.Code)
+	b := make([]byte, 0)
+	b = append(b, packet.Type, packet.Code)
 	b = binary.BigEndian.AppendUint16(b, checksumPlaceholder)
+
+	return b, nil
+}
+
+func (packet EchoRequest) Marshal() ([]byte, error) {
+	if len(packet.Payload) > maxPayload {
+		return nil, fmt.Errorf("marshal icmp request: payload size %d exceeds limit of %d Bytes", len(packet.Payload), maxPayload)
+	}
+
+	b := make([]byte, 0, 8+len(packet.Payload))
+
+	hdr, err := packet.ICMPPacket.Marshal()
+
+	if err != nil {
+		return nil, errors.New("failed to parse ICMP Headers")
+	}
+
+	b = append(b, hdr...)
+	b = binary.BigEndian.AppendUint16(b, packet.Identifier)
+	b = binary.BigEndian.AppendUint16(b, packet.SequenceNumber)
 	b = append(b, packet.Payload...)
-	
+
 	cs := computeChecksum(b)
 
 	binary.BigEndian.PutUint16(b[2:4], cs)
@@ -59,23 +79,8 @@ func (packet ICMPPacket) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-func (request EchoRequest) Marshal() ([]byte, error) {
-	if len(request.Payload) > maxPayload {
-		return nil, fmt.Errorf("marshal icmp request: payload size %d exceeds limit of %d Bytes", len(request.Payload), maxPayload)
-	}
-
-	b := make([]byte, 0, 8+len(request.Payload))
-	b = append(b, request.MessageType, request.Code)
-	b = binary.BigEndian.AppendUint16(b, checksumPlaceholder)
-	b = binary.BigEndian.AppendUint16(b, request.Identifier)
-	b = binary.BigEndian.AppendUint16(b, request.SequenceNumber)
-	b = append(b, request.Payload...)
-
-	cs := computeChecksum(b)
-
-	binary.BigEndian.PutUint16(b[2:4], cs)
-
-	return b, nil
+func (packet *EchoRequest) Unmarshal(data []byte) error {
+	return nil
 }
 
 // computeChecksum computes the checksum of a package, by splitting it up into 16 Bit words,
