@@ -1,16 +1,15 @@
-package ping
+package main
 
 import (
 	"encoding/binary"
-	"errors"
 	"fmt"
 )
 
 const (
-	echoCode            = 0
-	echoType            = 8
-	checksumPlaceholder = 0
-	maxPayload          = 56
+	echoCode       = 0
+	echoType       = 8
+	maxPayload     = 56
+	echoHeaderSize = 4
 )
 
 type Marshaler interface {
@@ -18,24 +17,32 @@ type Marshaler interface {
 }
 
 type Unmarshaler interface {
-	Unmarshall([]byte) (any, error)
+	Unmarshal([]byte) error
 }
 
-type ICMPPacket struct {
-	Type uint8
-	Code uint8
+type ICMPHeader struct {
+	Type     uint8
+	Code     uint8
+	Checksum uint16
 }
 
-type EchoRequest struct {
-	ICMPPacket
+type ICMPPacket interface {
+	Marshaler
+	Unmarshaler
+	GetHeaders() ICMPHeader
+	SetHeaders(header ICMPHeader)
+}
+
+type EchoICMPPacket struct {
+	ICMPHeader
 	Identifier     uint16
 	SequenceNumber uint16
 	Payload        []byte
 }
 
-func CreateEchoRequest(identifier uint16, sequenceNumber uint16, payload []byte) EchoRequest {
-	return EchoRequest{
-		ICMPPacket: ICMPPacket{
+func CreateEchoRequest(identifier uint16, sequenceNumber uint16, payload []byte) EchoICMPPacket {
+	return EchoICMPPacket{
+		ICMPHeader: ICMPHeader{
 			Type: echoType,
 			Code: echoCode,
 		},
@@ -45,41 +52,81 @@ func CreateEchoRequest(identifier uint16, sequenceNumber uint16, payload []byte)
 	}
 }
 
+func (req EchoICMPPacket) GetHeaders() ICMPHeader {
+	return req.ICMPHeader
+}
+
+func (req EchoICMPPacket) SetHeaders(header ICMPHeader) {
+	req.ICMPHeader = header
+}
+
+func Marshal[T ICMPPacket](packet T) ([]byte, error) {
+	base, err := packet.GetHeaders().Marshal()
+
+	if err != nil {
+		return nil, err
+	}
+
+	content, err := packet.Marshal()
+
+	if err != nil {
+		return nil, err
+	}
+
+	res := append(base, content...)
+
+	cs := computeChecksum(res)
+
+	binary.BigEndian.PutUint16(res[2:4], cs)
+
+	return res, nil
+}
+
 // Marshal parses the ICMP Type and ICMP Code of the Packet and sets the Checksum Placeholder
-func (packet ICMPPacket) Marshal() ([]byte, error) {
+func (packet ICMPHeader) Marshal() ([]byte, error) {
 	b := make([]byte, 0)
 	b = append(b, packet.Type, packet.Code)
-	b = binary.BigEndian.AppendUint16(b, checksumPlaceholder)
+	b = binary.BigEndian.AppendUint16(b, packet.Checksum)
 
 	return b, nil
 }
 
-func (packet EchoRequest) Marshal() ([]byte, error) {
+func (headers ICMPHeader) Unmarshal(b []byte) error {
+	headers.Type = b[0]
+	headers.Code = b[1]
+	headers.Checksum = binary.BigEndian.Uint16(b[2:4])
+	return nil
+}
+
+func (packet EchoICMPPacket) Marshal() ([]byte, error) {
 	if len(packet.Payload) > maxPayload {
 		return nil, fmt.Errorf("marshal icmp request: payload size %d exceeds limit of %d Bytes", len(packet.Payload), maxPayload)
 	}
 
-	b := make([]byte, 0, 8+len(packet.Payload))
-
-	hdr, err := packet.ICMPPacket.Marshal()
-
-	if err != nil {
-		return nil, errors.New("failed to parse ICMP Headers")
-	}
-
-	b = append(b, hdr...)
+	b := make([]byte, 0, echoHeaderSize+len(packet.Payload))
 	b = binary.BigEndian.AppendUint16(b, packet.Identifier)
 	b = binary.BigEndian.AppendUint16(b, packet.SequenceNumber)
 	b = append(b, packet.Payload...)
 
-	cs := computeChecksum(b)
-
-	binary.BigEndian.PutUint16(b[2:4], cs)
-
 	return b, nil
 }
 
-func (packet *EchoRequest) Unmarshal(data []byte) error {
+func Unmarshal[T ICMPPacket](data []byte, zero T) error {
+	if err := zero.GetHeaders().Unmarshal(data[0:4]); err != nil {
+		return err
+	}
+
+	if err := zero.Unmarshal(data[4:]); err != nil {
+		return err
+	}
+	return nil
+
+}
+
+func (packet EchoICMPPacket) Unmarshal(data []byte) error {
+	packet.Identifier = binary.BigEndian.Uint16(data[0:2])
+	packet.SequenceNumber = binary.BigEndian.Uint16(data[2:4])
+	packet.Payload = data[4:]
 	return nil
 }
 
@@ -108,4 +155,20 @@ func computeChecksum(request []byte) uint16 {
 	var checksum = ^uint16(sum)
 
 	return checksum
+}
+
+func main() {
+	req := CreateEchoRequest(0, 0, []byte("Hello World! :)"))
+	res, err := Marshal(req)
+
+	if err != nil {
+		panic(fmt.Errorf("marshal echo request: %v", err))
+	}
+
+	var u EchoICMPPacket
+	if err := Unmarshal(res, &u); err != nil {
+		panic(err)
+	}
+
+	fmt.Println(res, "\n", u)
 }
