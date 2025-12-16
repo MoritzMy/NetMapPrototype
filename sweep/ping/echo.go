@@ -29,7 +29,7 @@ type ICMPHeader struct {
 type ICMPPacket interface {
 	Marshaler
 	Unmarshaler
-	GetHeaders() ICMPHeader
+	GetHeaders() *ICMPHeader
 	SetHeaders(header ICMPHeader)
 }
 
@@ -52,11 +52,11 @@ func CreateEchoRequest(identifier uint16, sequenceNumber uint16, payload []byte)
 	}
 }
 
-func (req EchoICMPPacket) GetHeaders() ICMPHeader {
-	return req.ICMPHeader
+func (req *EchoICMPPacket) GetHeaders() *ICMPHeader {
+	return &req.ICMPHeader
 }
 
-func (req EchoICMPPacket) SetHeaders(header ICMPHeader) {
+func (req *EchoICMPPacket) SetHeaders(header ICMPHeader) {
 	req.ICMPHeader = header
 }
 
@@ -91,7 +91,7 @@ func (packet ICMPHeader) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-func (headers ICMPHeader) Unmarshal(b []byte) error {
+func (headers *ICMPHeader) Unmarshal(b []byte) error {
 	headers.Type = b[0]
 	headers.Code = b[1]
 	headers.Checksum = binary.BigEndian.Uint16(b[2:4])
@@ -123,7 +123,7 @@ func Unmarshal[T ICMPPacket](data []byte, zero T) error {
 
 }
 
-func (packet EchoICMPPacket) Unmarshal(data []byte) error {
+func (packet *EchoICMPPacket) Unmarshal(data []byte) error {
 	packet.Identifier = binary.BigEndian.Uint16(data[0:2])
 	packet.SequenceNumber = binary.BigEndian.Uint16(data[2:4])
 	packet.Payload = data[4:]
@@ -159,7 +159,7 @@ func computeChecksum(request []byte) uint16 {
 
 func main() {
 	req := CreateEchoRequest(0, 0, []byte("Hello World! :)"))
-	res, err := Marshal(req)
+	res, err := Marshal(&req)
 
 	if err != nil {
 		panic(fmt.Errorf("marshal echo request: %v", err))
