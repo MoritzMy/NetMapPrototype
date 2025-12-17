@@ -46,13 +46,14 @@ func Ping(addr net.IP) *IPPacket {
 
 	cr := make([]byte, 84)
 
-	err = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	err = conn.SetReadDeadline(time.Now().Add(time.Second))
 	if err != nil {
 		return nil
 	}
 	read, err := conn.Read(cr)
 	if err != nil {
-		panic(err)
+		fmt.Println(fmt.Sprintf("%v is not responding", addr))
+		return nil
 	}
 	fmt.Println(fmt.Sprintf("Recieved %d Bits from: %s", read, addr.String()))
 

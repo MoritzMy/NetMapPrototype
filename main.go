@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net"
+	"sync"
 
 	ping "github.com/MoritzMy/NetMap/sweep/ping"
 	"github.com/MoritzMy/NetMap/sweep/ping/icmp"
@@ -14,20 +15,34 @@ func main() {
 	for _, iface := range ifaces {
 		addrs, _ := iface.Addrs()
 		for _, addr := range addrs {
-			for _, ip := range ping.ValidIpsInNetwork(addr.(*net.IPNet)) {
-				// Avoid the Loopback IP since it's not relevant for scan and any non IPv4 IPs
-				if ip.IsLoopback() || ip.To4() == nil || !ip.IsGlobalUnicast() || ip.IsMulticast() {
-					continue
-				}
-
-				res := ping.Ping(ip)
-
-				var icmpResponse icmp.EchoICMPPacket
-
-				icmp.Unmarshal(res.Data, &icmpResponse)
-
-				fmt.Println(icmpResponse, res.String())
+			if addr.(*net.IPNet).IP.IsLoopback() {
+				continue
 			}
+
+			fmt.Println(ping.ValidIpsInNetwork(addr.(*net.IPNet)))
+
+			var wg sync.WaitGroup
+
+			for _, ip := range ping.ValidIpsInNetwork(addr.(*net.IPNet)) {
+				ip := ip // Otherwise Routines will use last IP
+
+				wg.Add(1)
+				go func() {
+					defer wg.Done()
+
+					res := ping.Ping(ip)
+					if res == nil {
+						return
+					}
+					var icmpResponse icmp.EchoICMPPacket
+
+					icmp.Unmarshal(res.Data, &icmpResponse)
+
+					fmt.Println(icmpResponse, "\n", res.String())
+				}()
+			}
+
+			wg.Wait()
 		}
 	}
 }

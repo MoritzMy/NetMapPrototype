@@ -71,7 +71,7 @@ func (packet *IPPacket) String() string {
 			"Checksum: %d\n"+
 			"SourceAddress: %s\n"+
 			"DestinationAddress: %s\n"+
-			"Options:%x",
+			"Options:%x\n\n",
 		packet.VersionIHL, packet.ToS, packet.TotalLength, packet.Identification, packet.Flags, packet.Fragmentation, packet.TTL, packet.Protocol, packet.Checksum, packet.SourceAddress, packet.DestinationAddress, packet.Options)
 }
 
