@@ -14,29 +14,20 @@ func main() {
 	for _, iface := range ifaces {
 		addrs, _ := iface.Addrs()
 		for _, addr := range addrs {
+			for _, ip := range ping.ValidIpsInNetwork(addr.(*net.IPNet)) {
+				// Avoid the Loopback IP since it's not relevant for scan and any non IPv4 IPs
+				if ip.IsLoopback() || ip.To4() == nil || !ip.IsGlobalUnicast() || ip.IsMulticast() {
+					continue
+				}
 
-			// TODO: Currently pings self, need to get the network range
+				res := ping.Ping(ip)
 
-			// TODO: Fix Up ping.ValidateIP
-			ping.ValidIpsInNetwork(addr.(*net.IPNet))
-			ipNet, ok := addr.(*net.IPNet)
+				var icmpResponse icmp.EchoICMPPacket
 
-			if !ok {
-				continue
+				icmp.Unmarshal(res.Data, &icmpResponse)
+
+				fmt.Println(icmpResponse, res.String())
 			}
-
-			// Avoid the Loopback IP since it's not relevant for scan and any non IPv4 IPs
-			if ipNet.IP.IsLoopback() || ipNet.IP.To4() == nil || !ipNet.IP.IsGlobalUnicast() || ipNet.IP.IsMulticast() {
-				continue
-			}
-
-			res := ping.Ping(ipNet.IP)
-
-			var icmpResponse icmp.EchoICMPPacket
-
-			icmp.Unmarshal(res.Data, &icmpResponse)
-
-			fmt.Println(icmpResponse, res.String())
 		}
 	}
 }
