@@ -30,7 +30,7 @@ func main() {
 				continue
 			}
 
-			res := ping.Ping(ipNet)
+			res := ping.Ping(ipNet.IP)
 
 			fmt.Println(res)
 		}

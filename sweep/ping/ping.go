@@ -12,7 +12,7 @@ const (
 	echoReplyType = 0
 )
 
-func Ping(addr *net.IPNet) *icmp.EchoICMPPacket {
+func Ping(addr net.IP) *icmp.EchoICMPPacket {
 	var identifier uint16 = 0
 	var sequenceNumber uint16 = 0
 
@@ -21,7 +21,7 @@ func Ping(addr *net.IPNet) *icmp.EchoICMPPacket {
 	if err != nil {
 		panic(err)
 	}
-	conn, err := net.Dial("ip4:icmp", addr.IP.String())
+	conn, err := net.Dial("ip4:icmp", addr.String())
 
 	if err != nil {
 		panic(err)
@@ -42,7 +42,7 @@ func Ping(addr *net.IPNet) *icmp.EchoICMPPacket {
 		return nil
 	}
 
-	fmt.Println(fmt.Sprintf("Wrote %d Bits to: %s", write, addr.IP.String()))
+	fmt.Println(fmt.Sprintf("Wrote %d Bits to: %s", write, addr.String()))
 
 	cr := make([]byte, 84)
 
@@ -55,7 +55,7 @@ func Ping(addr *net.IPNet) *icmp.EchoICMPPacket {
 		panic(err)
 	}
 
-	fmt.Println(fmt.Sprintf("Recieved %d Bits from: %s", read, addr.IP.String()))
+	fmt.Println(fmt.Sprintf("Recieved %d Bits from: %s", read, addr.String()))
 
 	var u icmp.EchoICMPPacket
 
