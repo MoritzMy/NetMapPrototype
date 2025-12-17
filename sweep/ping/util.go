@@ -7,12 +7,18 @@ import (
 )
 
 func ValidIpsInNetwork(addr *net.IPNet) []net.IP {
+	var hosts []net.IP
+
+	addr.IP.Mask(addr.Mask)
+
 	ip := addr.IP
 	subnet, size := addr.Mask.Size()
 
 	bytes := []byte(ip)
 
-	if ip.To4() == nil {
+	ip4 := ip.To4()
+
+	if ip4 == nil {
 		return nil
 	}
 
@@ -22,11 +28,24 @@ func ValidIpsInNetwork(addr *net.IPNet) []net.IP {
 
 	fmt.Println(ip, subnet, size)
 
+	for i := 0; i < 2^(size-subnet); i++ {
+
+	}
+
 	if isNetworkIP(ip, subnet) || isBroadcastIP(ip, subnet) {
 
 	}
 
 	return nil
+}
+
+func IncrementIP(ip net.IP) {
+	for j := len(ip) - 1; j >= 0; j-- {
+		ip[j]++
+		if ip[j] != 0 {
+			break
+		}
+	}
 }
 
 func isNetworkIP(ip net.IP, prefixLen int) bool {
