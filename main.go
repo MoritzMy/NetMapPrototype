@@ -30,15 +30,15 @@ func main() {
 				go func() {
 					defer wg.Done()
 
-					res := ping.Ping(ip)
-					if res == nil {
+					res, err := ping.Ping(ip)
+					if res == nil || err != nil {
 						return
 					}
 					var icmpResponse icmp.EchoICMPPacket
 
 					icmp.Unmarshal(res.Data, &icmpResponse)
 
-					fmt.Println(icmpResponse, "\n", res.String())
+					fmt.Println(icmpResponse.String(), "\n", res.String())
 				}()
 			}
 

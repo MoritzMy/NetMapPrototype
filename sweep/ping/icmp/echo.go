@@ -1,6 +1,7 @@
 package icmp
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 )
@@ -30,6 +31,34 @@ func (req *EchoICMPPacket) GetHeaders() *ICMPHeader {
 
 func (req *EchoICMPPacket) SetHeaders(header ICMPHeader) {
 	req.ICMPHeader = header
+}
+
+func (pkg *EchoICMPPacket) Equal(other_pkg EchoICMPPacket) bool {
+	return pkg.Type == other_pkg.Type &&
+		pkg.Code == other_pkg.Code &&
+		pkg.Checksum == other_pkg.Checksum &&
+		pkg.Identifier == other_pkg.Identifier &&
+		pkg.SequenceNumber == other_pkg.SequenceNumber &&
+		bytes.Equal(pkg.Payload, other_pkg.Payload)
+}
+
+func (p EchoICMPPacket) String() string {
+	const maxPreview = 16
+
+	preview := p.Payload
+	if len(preview) > maxPreview {
+		preview = preview[:maxPreview]
+	}
+
+	return fmt.Sprintf(
+		"ICMP Echo (type=%d code=%d id=%d seq=%d payload_len=%d payload=%q)",
+		p.Type,
+		p.Code,
+		p.Identifier,
+		p.SequenceNumber,
+		len(p.Payload),
+		preview,
+	)
 }
 
 func (packet EchoICMPPacket) Marshal() ([]byte, error) {

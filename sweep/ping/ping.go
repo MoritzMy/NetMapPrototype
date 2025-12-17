@@ -12,7 +12,7 @@ const (
 	echoReplyType = 0
 )
 
-func Ping(addr net.IP) *IPPacket {
+func Ping(addr net.IP) (*IPPacket, error) {
 	var identifier uint16 = 0
 	var sequenceNumber uint16 = 0
 
@@ -35,11 +35,11 @@ func Ping(addr net.IP) *IPPacket {
 
 	err = conn.SetWriteDeadline(time.Now().Add(2 * time.Second))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	write, err := conn.Write(b)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 
 	fmt.Println(fmt.Sprintf("Wrote %d Bits to: %s", write, addr.String()))
@@ -48,17 +48,17 @@ func Ping(addr net.IP) *IPPacket {
 
 	err = conn.SetReadDeadline(time.Now().Add(time.Second))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	read, err := conn.Read(cr)
 	if err != nil {
 		fmt.Println(fmt.Sprintf("%v is not responding", addr))
-		return nil
+		return nil, err
 	}
 	fmt.Println(fmt.Sprintf("Recieved %d Bits from: %s", read, addr.String()))
 
 	packet := NewIPPacket(cr)
 
-	return packet
+	return packet, nil
 
 }
