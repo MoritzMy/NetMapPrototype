@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/MoritzMy/NetMap/ping"
+	"github.com/MoritzMy/NetMap/scan/ping"
 )
 
 func main() {

@@ -4,11 +4,11 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/MoritzMy/NetMap/ping/ip"
+	ip2 "github.com/MoritzMy/NetMap/proto/ip"
 )
 
 type QuotedPacket struct {
-	Header  ip.Header
+	Header  ip2.Header
 	Payload [8]byte
 }
 
@@ -20,8 +20,8 @@ func (packet *TimeExceededPacket) Unmarshal(b []byte) error {
 	}
 	packet.Unused = binary.BigEndian.Uint32(b[0:4])
 
-	var ipPacket ip.IPv4Packet
-	packet.IPv4Packet = ip.Unmarshal(b[4:], ipPacket)
+	var ipPacket ip2.IPv4Packet
+	packet.IPv4Packet = ip2.Unmarshal(b[4:], ipPacket)
 	return nil
 }
 
@@ -40,5 +40,5 @@ func (packet *TimeExceededPacket) SetHeaders(header ICMPHeader) {
 type TimeExceededPacket struct {
 	ICMPHeader
 	Unused uint32
-	ip.IPv4Packet
+	ip2.IPv4Packet
 }

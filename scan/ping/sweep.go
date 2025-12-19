@@ -5,8 +5,8 @@ import (
 	"net"
 	"sync"
 
-	icmp2 "github.com/MoritzMy/NetMap/ping/icmp"
-	"github.com/MoritzMy/NetMap/ping/ip"
+	"github.com/MoritzMy/NetMap/proto/icmp"
+	"github.com/MoritzMy/NetMap/proto/ip"
 )
 
 //TODO: Seperate the Network Interface IP extraction Logic from Ping into seperate file
@@ -37,9 +37,9 @@ func Sweep() {
 					if res == nil || err != nil {
 						return
 					}
-					var icmpResponse icmp2.EchoICMPPacket
+					var icmpResponse icmp.EchoICMPPacket
 
-					icmp2.Unmarshal(res.Data, &icmpResponse)
+					icmp.Unmarshal(res.Data, &icmpResponse)
 
 					fmt.Println(icmpResponse.String(), "\n", res.String())
 				}()

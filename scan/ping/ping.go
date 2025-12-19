@@ -5,20 +5,20 @@ import (
 	"net"
 	"time"
 
-	icmp2 "github.com/MoritzMy/NetMap/ping/icmp"
-	"github.com/MoritzMy/NetMap/ping/ip"
+	"github.com/MoritzMy/NetMap/proto/icmp"
+	ip2 "github.com/MoritzMy/NetMap/proto/ip"
 )
 
 const (
 	echoReplyType = 0
 )
 
-func Ping(addr net.IP) (*ip.IPv4Packet, error) {
+func Ping(addr net.IP) (*ip2.IPv4Packet, error) {
 	var identifier uint16 = 0
 	var sequenceNumber uint16 = 0
 
-	req := icmp2.NewEchoICMPPacket(identifier, sequenceNumber, []byte("ARE U UP?"))
-	b, err := icmp2.Marshal(&req)
+	req := icmp.NewEchoICMPPacket(identifier, sequenceNumber, []byte("ARE U UP?"))
+	b, err := icmp.Marshal(&req)
 	if err != nil {
 		panic(err)
 	}
@@ -58,7 +58,7 @@ func Ping(addr net.IP) (*ip.IPv4Packet, error) {
 	}
 	fmt.Println(fmt.Sprintf("Recieved %d Bits from: %s", read, addr.String()))
 
-	packet := ip.Unmarshal(cr)
+	packet := ip2.Unmarshal(cr)
 
 	return packet, nil
 
