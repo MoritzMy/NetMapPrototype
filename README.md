@@ -33,7 +33,7 @@ Features, APIs, and behavior may change as the project evolves.
 - Lightweight and dependency-minimal design
 
 
-## How It Works (High-Level)
+## How It Works
 
 1. **Subnet Discovery**  
    The local network range is derived from the active network interfaces.
