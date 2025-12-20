@@ -38,7 +38,7 @@ func (packet *IPv4Packet) Size() int {
 
 func (packet *IPv4Packet) String() string {
 	return fmt.Sprintf(
-		"VersionIHL: %d\n"+
+		"%s\n"+
 			"ToS: %d\n"+
 			"TotalLength: %d\n"+
 			"Identification: %d\n"+
@@ -49,5 +49,5 @@ func (packet *IPv4Packet) String() string {
 			"SourceAddress: %s\n"+
 			"DestinationAddress: %s\n"+
 			"Options:%x\n\n",
-		packet.VersionIHL, packet.ToS, packet.TotalLength, packet.Identification, packet.Flags, packet.Fragmentation, packet.TTL, packet.Protocol, packet.Checksum, packet.SourceAddress, packet.DestinationAddress, packet.Options)
+		packet.VersionIHL.String(), packet.ToS, packet.TotalLength, packet.Identification, packet.Flags, packet.Fragmentation, packet.TTL, packet.Protocol, packet.Checksum, packet.SourceAddress, packet.DestinationAddress, packet.Options)
 }

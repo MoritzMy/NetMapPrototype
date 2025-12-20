@@ -43,7 +43,7 @@ func Sweep() {
 
 					icmp.Unmarshal(res.Data, &icmpResponse)
 
-					fmt.Println(icmpResponse.String(), "\n", res.String())
+					fmt.Println(fmt.Sprintf("%s\n%s", icmpResponse.String(), res.String()))
 				}()
 			}
 

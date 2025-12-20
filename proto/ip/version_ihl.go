@@ -1,5 +1,7 @@
 package ip
 
+import "fmt"
+
 type IPv4VersionIHL struct {
 	version uint8
 	IHL     uint8
@@ -17,4 +19,8 @@ func (header IPv4VersionIHL) Size() int {
 		return 0 // encountered non IPv4 Header
 	}
 	return int(header.IHL) * IHLHeaderByteIncrement
+}
+
+func (header IPv4VersionIHL) String() string {
+	return fmt.Sprintf("Version: %d\nIHL: %d\nFull Header Size: %d", header.version, header.IHL, header.Size())
 }
