@@ -4,15 +4,15 @@ const (
 	ARPPacketLength = 42
 )
 
-func Marshal(request ARPRequest) ([]byte, error) {
+func Marshal(packet ARPRequest) ([]byte, error) {
 	b := make([]byte, 0, ARPPacketLength)
-	base, err := request.EthernetHeader.Marshal()
+	base, err := packet.EthernetHeader.Marshal()
 
 	if err != nil {
 		return nil, err
 	}
 
-	content, err := request.Marshal()
+	content, err := packet.Marshal()
 
 	if err != nil {
 		return nil, err
@@ -22,4 +22,16 @@ func Marshal(request ARPRequest) ([]byte, error) {
 	b = append(b, content...)
 
 	return b, nil
+}
+
+func Unmarshal(b []byte, packet *ARPRequest) error {
+	if err := packet.EthernetHeader.Unmarshal(b[:14]); err != nil {
+		return err
+	}
+
+	if err := packet.Unmarshal(b[14:]); err != nil {
+		return err
+	}
+
+	return nil
 }

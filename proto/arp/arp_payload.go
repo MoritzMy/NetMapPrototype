@@ -2,6 +2,7 @@ package arp
 
 import (
 	"encoding/binary"
+	"fmt"
 	"net"
 
 	"github.com/MoritzMy/NetMap/proto/ethernet"
@@ -69,5 +70,19 @@ func (packet ARPRequest) Marshal() ([]byte, error) {
 }
 
 func (packet *ARPRequest) Unmarshal(b []byte) error {
-	panic("implement me")
+	if len(b) != 28 {
+		return fmt.Errorf("provided byte array does not match required size of 28 Bytes")
+	}
+
+	packet.HTYPE = binary.BigEndian.Uint16(b[0:2])
+	packet.PTYPE = binary.BigEndian.Uint16(b[2:4])
+	packet.HLEN = b[4]
+	packet.PLEN = b[5]
+	packet.OPER = binary.BigEndian.Uint16(b[6:8])
+	packet.SourceMAC = b[8:14]
+	packet.SourceIP = b[14:18]
+	packet.TargetMAC = b[18:24]
+	packet.TargetIP = b[24:28]
+
+	return nil
 }
