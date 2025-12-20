@@ -11,7 +11,7 @@ import (
 
 //TODO: Seperate the Network Interface IP extraction Logic from Ping into seperate file
 
-// Sweep performs a Ping Sweep over the active NetworkInterfaces
+// Sweep performs a Ping Sweep over the active Network Interfaces
 func Sweep() {
 	ifaces, _ := net.Interfaces()
 
