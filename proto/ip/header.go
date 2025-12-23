@@ -21,6 +21,15 @@ type Header struct {
 	Options            []byte
 }
 
+func (header *Header) Marshal(bytes []byte) ([]byte, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (header *Header) Len() int {
+	return header.VersionIHL.Size()
+}
+
 // Unmarshal provides a way to unmarshal the IP IPv4Packet Payload separately from the Headers
 func (header *Header) Unmarshal(b []byte) error {
 	if len(b) < MinIPPacketSize {

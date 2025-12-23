@@ -4,18 +4,32 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+
+	"github.com/MoritzMy/NetMap/proto"
 )
 
 type EchoICMPPacket struct {
-	ICMPHeader
+	*ICMPHeader
 	Identifier     uint16
 	SequenceNumber uint16
 	Payload        []byte
 }
 
+func (packet *EchoICMPPacket) GetHeaders() proto.Header {
+	return packet.ICMPHeader
+}
+
+func (packet *EchoICMPPacket) SetHeaders(header proto.Header) {
+	h, ok := header.(*ICMPHeader)
+	if !ok {
+		panic(fmt.Sprintf("can't convert %v to ICMP Header", header))
+	}
+	packet.ICMPHeader = h
+}
+
 func NewEchoICMPPacket(identifier uint16, sequenceNumber uint16, payload []byte) EchoICMPPacket {
 	return EchoICMPPacket{
-		ICMPHeader: ICMPHeader{
+		ICMPHeader: &ICMPHeader{
 			Type: echoType,
 			Code: echoCode,
 		},
@@ -23,14 +37,6 @@ func NewEchoICMPPacket(identifier uint16, sequenceNumber uint16, payload []byte)
 		SequenceNumber: sequenceNumber,
 		Payload:        payload,
 	}
-}
-
-func (packet *EchoICMPPacket) GetHeaders() *ICMPHeader {
-	return &packet.ICMPHeader
-}
-
-func (packet *EchoICMPPacket) SetHeaders(header ICMPHeader) {
-	packet.ICMPHeader = header
 }
 
 func (packet EchoICMPPacket) Equal(other_pkg EchoICMPPacket) bool {

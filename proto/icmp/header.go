@@ -2,14 +2,20 @@ package icmp
 
 import "encoding/binary"
 
+const fourBytes = 4
+
 type ICMPHeader struct {
 	Type     uint8
 	Code     uint8
 	Checksum uint16
 }
 
+func (packet ICMPHeader) Len() int {
+	return fourBytes
+}
+
 // Marshal parses the ICMP Type and ICMP Code of the IPv4Packet and sets the Checksum Placeholder
-func (packet ICMPHeader) Marshal() ([]byte, error) {
+func (packet ICMPHeader) Marshal(bytes []byte) ([]byte, error) {
 	b := make([]byte, 0)
 	b = append(b, packet.Type, packet.Code)
 	b = binary.BigEndian.AppendUint16(b, packet.Checksum)

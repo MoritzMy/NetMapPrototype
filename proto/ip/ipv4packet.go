@@ -2,11 +2,29 @@ package ip
 
 import (
 	"fmt"
+
+	"github.com/MoritzMy/NetMap/proto"
 )
 
 type IPv4Packet struct {
-	Header
+	*Header
 	Data []byte
+}
+
+func (packet *IPv4Packet) GetHeaders() proto.Header {
+	return packet.Header
+}
+
+func (packet *IPv4Packet) SetHeaders(header proto.Header) {
+	h, ok := header.(*Header)
+	if !ok {
+		panic("inv")
+	}
+	packet.Header = h
+}
+
+func (packet *IPv4Packet) Len() int {
+	return int(packet.Header.TotalLength)
 }
 
 func (packet *IPv4Packet) Marshal() ([]byte, error) {
@@ -18,22 +36,6 @@ func (packet *IPv4Packet) Unmarshal(b []byte) error {
 	packet.Data = b
 
 	return nil
-}
-
-func (packet *IPv4Packet) GetHeaders() *Header {
-	return &packet.Header
-}
-
-func (packet *IPv4Packet) SetHeaders(header Header) {
-	packet.Header = header
-}
-
-func (packet *IPv4Packet) HeaderSize() int {
-	return packet.Header.VersionIHL.Size()
-}
-
-func (packet *IPv4Packet) Size() int {
-	return int(packet.Header.TotalLength)
 }
 
 func (packet *IPv4Packet) String() string {
