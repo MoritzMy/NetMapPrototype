@@ -21,6 +21,11 @@ func Marshal[T Packet](packet T) ([]byte, error) {
 func Unmarshal[T Packet](data []byte, zero T) error {
 	h := zero.GetHeaders()
 
+	// TODO: Before unmarshaling the Headers, the Size of the Headers must be determined
+	// May add a function that gets the size of the Headers from a byte array
+
+	// Header Interface must implement a calculate Header Length function which takes []byte as input
+
 	if err := zero.GetHeaders().Unmarshal(data); err != nil {
 		return err
 	}
