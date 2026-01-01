@@ -15,6 +15,19 @@ Rather than relying on existing high-level libraries, NetMap focuses on understa
 - How TTL-based probing reveals routing paths
 - How hop-by-hop paths can be aggregated into a graph representation
 
+## Features
+
+NetMap only supports IPv4 as of now
+
+- ARP-Scan
+
+  Iterates over all Interfaces and sends an ARP Request for all possible IPs in the Subnet of the Interface IP Adress
+  
+- Ping Sweep
+
+  Iterates over all Interfaces and Ping Sweeps each Subnet of the Interface IP Adress
+
+  
 ## Project Status
 
 **WIP**
