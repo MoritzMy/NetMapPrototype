@@ -1,5 +1,6 @@
 package proto
 
+// Marshal marshals the provided Packet of type T into a byte slice.
 func Marshal[T Packet](packet T) ([]byte, error) {
 	context, err := packet.Marshal()
 
@@ -18,18 +19,21 @@ func Marshal[T Packet](packet T) ([]byte, error) {
 	return b, nil
 }
 
-func Unmarshal[T Packet](data []byte, zero T) error {
+// Unmarshal unmarshals data into the provided zero Packet of type T. If ctx is non-zero, it indicates the length of the header context to consider during unmarshaling.
+func Unmarshal[T Packet](data []byte, zero T, ctx int) error {
 	h := zero.GetHeaders()
-
-	// TODO: Before unmarshaling the Headers, the Size of the Headers must be determined
-	// May add a function that gets the size of the Headers from a byte array
-
-	// Header Interface must implement a calculate Header Length function which takes []byte as input
 
 	if err := h.Unmarshal(data); err != nil {
 		return err
 	}
-	if err := zero.Unmarshal(data[h.Len():zero.Len()]); err != nil {
+	if ctx != 0 {
+		if err := zero.Unmarshal(data[h.Len():ctx]); err != nil {
+			return err
+		}
+		return nil
+	}
+
+	if err := zero.Unmarshal(data[h.Len():]); err != nil {
 		return err
 	}
 	return nil

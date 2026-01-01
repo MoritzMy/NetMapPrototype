@@ -11,6 +11,7 @@ const (
 	EthernetHeaderLength = 14
 )
 
+// EthernetHeader represents an Ethernet II frame header. It contains the destination and source MAC addresses and the EtherType field.
 type EthernetHeader struct {
 	DestinationMAC net.HardwareAddr
 	SourceMAC      net.HardwareAddr

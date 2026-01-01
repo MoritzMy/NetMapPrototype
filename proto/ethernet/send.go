@@ -5,11 +5,13 @@ import (
 	"syscall"
 )
 
+// SendEthernetFrame sends a raw Ethernet frame through the specified network interface using the provided file descriptor.
 func SendEthernetFrame(frame []byte, iface string, fd int) error {
 	_, err := syscall.Write(fd, frame)
 	return err
 }
 
+// CreateSocket creates a raw socket bound to the specified network interface for sending and receiving Ethernet frames.
 func CreateSocket(interf *net.Interface) (int, error) {
 	ifIndex := interf.Index
 
@@ -34,6 +36,7 @@ func CreateSocket(interf *net.Interface) (int, error) {
 	return fd, nil
 }
 
+// htons converts a 16-bit integer from host byte order to network byte order.
 func htons(v uint16) uint16 {
 	return (v << 8) | (v >> 8)
 }

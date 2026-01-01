@@ -12,6 +12,7 @@ const (
 	MinIPPacketSize        = 20
 )
 
+// Header represents an IPv4 Header structure. For more information see RFC 791.
 type Header struct {
 	VersionIHL         IPv4VersionIHL
 	ToS                uint8
@@ -34,6 +35,10 @@ func (header *Header) Marshal(bytes []byte) ([]byte, error) {
 
 func (header *Header) Len() int {
 	return header.VersionIHL.Size()
+}
+
+func (header *Header) GetTotalLength(b []byte) int {
+	return 0
 }
 
 // Unmarshal provides a way to unmarshal the IP IPv4Packet Payload separately from the Headers

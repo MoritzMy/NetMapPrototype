@@ -4,6 +4,7 @@ import "encoding/binary"
 
 const fourBytes = 4
 
+// ICMPHeader represents the ICMP Header structure. For more information see RFC 792.
 type ICMPHeader struct {
 	Type     uint8
 	Code     uint8

@@ -23,8 +23,6 @@ func Sweep(ifaces []net.Interface) {
 				continue
 			}
 
-			fmt.Println(ip.ValidIpsInNetwork(addr.(*net.IPNet)))
-
 			var wg sync.WaitGroup
 
 			for _, ip := range ip.ValidIpsInNetwork(addr.(*net.IPNet)) {
@@ -45,12 +43,10 @@ func Sweep(ifaces []net.Interface) {
 					}
 					var icmpResponse icmp.EchoICMPPacket
 
-					fmt.Println(res.Data)
-
-					if err := proto.Unmarshal(res.Data, &icmpResponse); err != nil {
+					if err := proto.Unmarshal(res.Data, &icmpResponse, int(res.TotalLength)-res.VersionIHL.Size()); err != nil {
 						return
 					}
-					fmt.Println(fmt.Sprintf("%s\n%s", icmpResponse.String(), res.String()))
+					fmt.Println(fmt.Sprintf("Host %s is up! ICMP Response: %+v", ip.String(), icmpResponse))
 				}()
 			}
 

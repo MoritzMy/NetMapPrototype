@@ -15,6 +15,7 @@ const (
 	echoHeaderSize = 4
 )
 
+// EchoICMPPacket represents an ICMP Echo Request or Reply Packet structure. For more information see RFC 792.
 type EchoICMPPacket struct {
 	*ICMPHeader
 	Identifier     uint16

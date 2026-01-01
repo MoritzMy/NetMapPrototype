@@ -2,6 +2,7 @@ package ip
 
 import "fmt"
 
+// IPv4VersionIHL represents the first byte of an IPv4 Header containing the Version and IHL fields.
 type IPv4VersionIHL struct {
 	version uint8
 	IHL     uint8

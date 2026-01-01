@@ -6,6 +6,7 @@ import (
 	"github.com/MoritzMy/NetMap/proto"
 )
 
+// IPv4Packet represents an IPv4 Packet with Header and Data sections.
 type IPv4Packet struct {
 	*Header
 	Data []byte

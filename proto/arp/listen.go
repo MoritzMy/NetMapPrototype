@@ -8,6 +8,7 @@ import (
 	"syscall"
 )
 
+// ARPResponseListener listens for ARP replies on the given file descriptor and sends them to the returned channel.
 func ARPResponseListener(fd int, ctx context.Context) <-chan Reply {
 	out := make(chan Reply, 256)
 
@@ -17,6 +18,11 @@ func ARPResponseListener(fd int, ctx context.Context) <-chan Reply {
 		buf := make([]byte, 128)
 
 		for {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			n, _, err := syscall.Recvfrom(fd, buf, 0)
 
 			if err != nil {
@@ -28,8 +34,6 @@ func ARPResponseListener(fd int, ctx context.Context) <-chan Reply {
 				continue
 			}
 			select {
-			case <-ctx.Done():
-				return
 			case out <- Reply{
 				IP:  net.IPv4(buf[28], buf[29], buf[30], buf[31]),
 				MAC: net.HardwareAddr{buf[22], buf[23], buf[24], buf[25], buf[26], buf[27]},

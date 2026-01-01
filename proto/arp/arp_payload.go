@@ -21,6 +21,7 @@ const (
 	ARPRequestPayloadSize = 28
 )
 
+// ARPRequest represents an ARP Request Packet structure. For more information see RFC 826.
 type ARPRequest struct {
 	EthernetHeader *eth.EthernetHeader
 	HTYPE          uint16

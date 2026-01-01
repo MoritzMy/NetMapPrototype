@@ -56,7 +56,7 @@ func Ping(addr net.IP) (*ip.IPv4Packet, error) {
 
 	var packet ip.IPv4Packet
 
-	if err := proto.Unmarshal(cr, &packet); err != nil {
+	if err := proto.Unmarshal(cr, &packet, 0); err != nil {
 		return nil, err
 	}
 
