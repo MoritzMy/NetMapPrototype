@@ -5,31 +5,9 @@ import (
 	"syscall"
 )
 
-func SendEthernetFrame(frame []byte, iface string) ([]byte, error) {
-	interf, err := net.InterfaceByName(iface)
-
-	if err != nil {
-		return nil, err
-	}
-
-	fd, err := CreateSocket(interf)
-
-	if err != nil {
-		return nil, err
-	}
-
-	_, err = syscall.Write(fd, frame)
-
-	if err != nil {
-		return nil, err
-	}
-
-	response, err := ReadARPResponse(fd, net.IP(frame[38:42]))
-	if err != nil {
-		return nil, err
-	}
-
-	return response, err
+func SendEthernetFrame(frame []byte, iface string, fd int) error {
+	_, err := syscall.Write(fd, frame)
+	return err
 }
 
 func CreateSocket(interf *net.Interface) (int, error) {
@@ -42,7 +20,6 @@ func CreateSocket(interf *net.Interface) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer syscall.Close(fd)
 
 	addr := syscall.SockaddrLinklayer{
 		Protocol: htons(syscall.ETH_P_ARP),
@@ -50,6 +27,7 @@ func CreateSocket(interf *net.Interface) (int, error) {
 	}
 
 	if err := syscall.Bind(fd, &addr); err != nil {
+		syscall.Close(fd)
 		return 0, err
 	}
 

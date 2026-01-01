@@ -1,37 +1,39 @@
 package arp_scan
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"net"
 	"sync"
+	"syscall"
+	"time"
 
 	"github.com/MoritzMy/NetMap/proto"
 	"github.com/MoritzMy/NetMap/proto/arp"
 	eth "github.com/MoritzMy/NetMap/proto/ethernet"
-	"github.com/MoritzMy/NetMap/proto/ip"
+	ip "github.com/MoritzMy/NetMap/proto/ip"
 )
 
-func SendARPRequest(iface net.Interface, targetIP net.IP) bool {
+func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 	addrs, _ := iface.Addrs()
 
 	for _, addr := range addrs {
-		ipNet, ok := addr.(*net.IPNet)
+		sourceIPNet, ok := addr.(*net.IPNet)
 		if !ok {
 			continue
 		}
 
-		if ipNet.IP.To4() == nil {
+		if sourceIPNet.IP.To4() == nil {
 			continue
 		}
 
-		req := arp.NewARPRequest(iface.HardwareAddr, ipNet.IP, targetIP)
+		req := arp.NewARPRequest(iface.HardwareAddr, sourceIPNet.IP, targetIP)
 		b, err := proto.Marshal(&req)
 		if err != nil {
 			log.Println("error occurred while marshalling ARP request:", err)
 			return false
 		}
-		res, err := eth.SendEthernetFrame(b, iface.Name)
+		err = eth.SendEthernetFrame(b, iface.Name, fd)
 		if err != nil {
 			log.Println("error occurred while sending ARP request:", err)
 			return false
@@ -40,13 +42,6 @@ func SendARPRequest(iface net.Interface, targetIP net.IP) bool {
 		var hdr eth.EthernetHeader
 		var pac arp.ARPRequest
 		pac.EthernetHeader = &hdr
-
-		if err := proto.Unmarshal(res, &pac); err != nil {
-			log.Println("error occurred while unmarshalling ARP response:", err)
-			return false
-		}
-		fmt.Println("RECEIVED ARP RESPONSE:")
-		fmt.Println(pac)
 	}
 	return true
 
@@ -58,37 +53,45 @@ func ScanNetwork(iface net.Interface) error {
 		return err
 	}
 
-	respondedIps := make([]net.IP, 0)
+	fd, err := eth.CreateSocket(&iface)
+	if err != nil {
+		return err
+	}
+	defer syscall.Close(fd)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	ch := arp.ARPResponseListener(fd, ctx)
+
+	go func() {
+		for res := range ch {
+			log.Println("Received ARP response from", res.IP, "with MAC", res.MAC)
+		}
+	}()
+
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, 256) // Semaphore to limit concurrency
 
 	for _, addr := range addrs {
-		ipNet, ok := addr.(*net.IPNet)
-		if !ok {
+		sourceIPNet, ok := addr.(*net.IPNet)
+		if !ok || sourceIPNet.IP.To4() == nil {
 			continue
 		}
 
-		// IPv4 only
-		if ipNet.IP.To4() == nil {
-			continue
-		}
-
-		var wg sync.WaitGroup
-
-		for _, ip := range ip.ValidIpsInNetwork(ipNet) {
-			fmt.Println("Scanning IP:", ip)
+		for _, ip := range ip.ValidIpsInNetwork(sourceIPNet) {
+			sem <- struct{}{} // Acquire semaphore
+			ip := ip          // Capture range variable
 			wg.Go(func() {
-				if ok := SendARPRequest(iface, ip); !ok {
-					log.Println("Failed to send ARP request to", ip)
-				} else {
-					respondedIps = append(respondedIps, ip)
-				}
+				defer func() { <-sem }() // Release semaphore
+				SendARPRequest(iface, ip, fd)
 			})
 		}
 
-		wg.Wait()
 	}
 
-	fmt.Println(respondedIps)
+	wg.Wait()
+	<-ctx.Done()
 
 	return nil
-
 }

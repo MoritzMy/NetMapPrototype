@@ -22,6 +22,10 @@ type EchoICMPPacket struct {
 	Payload        []byte
 }
 
+func (packet *EchoICMPPacket) Len() int {
+	return echoHeaderSize + 8
+}
+
 func (packet *EchoICMPPacket) GetHeaders() proto.Header {
 	if packet.ICMPHeader == nil {
 		packet.ICMPHeader = NewICMPHeader()

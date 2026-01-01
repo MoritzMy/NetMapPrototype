@@ -1,7 +1,6 @@
 package ping
 
 import (
-	"fmt"
 	"net"
 	"time"
 
@@ -39,12 +38,10 @@ func Ping(addr net.IP) (*ip.IPv4Packet, error) {
 	if err != nil {
 		return nil, err
 	}
-	write, err := conn.Write(b)
+	_, err = conn.Write(b)
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(fmt.Sprintf("Wrote %d Bits to: %s", write, addr.String()))
 
 	cr := make([]byte, 200)
 
@@ -52,12 +49,10 @@ func Ping(addr net.IP) (*ip.IPv4Packet, error) {
 	if err != nil {
 		return nil, err
 	}
-	read, err := conn.Read(cr)
+	_, err = conn.Read(cr)
 	if err != nil {
-		fmt.Println(fmt.Sprintf("%v is not responding", addr))
 		return nil, err
 	}
-	fmt.Println(fmt.Sprintf("Recieved %d Bits from: %s", read, addr.String()))
 
 	var packet ip.IPv4Packet
 

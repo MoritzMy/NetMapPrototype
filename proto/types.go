@@ -23,4 +23,5 @@ type Packet interface {
 	GetHeaders() Header
 	SetHeaders(Header)
 	Len() int
+	PayloadLength([]byte) int
 }

@@ -9,15 +9,11 @@ import (
 )
 
 func main() {
-	baddrs, err := net.Interfaces()
-	fmt.Println(baddrs)
-	arp_scan.ScanNetwork(baddrs[1])
+	ifaces, _ := net.Interfaces()
+	fmt.Println(ifaces)
+	arp_scan.ScanNetwork(ifaces[1])
+
+	ping.Sweep(ifaces)
 
 	return
-
-	addrs, err := net.InterfaceAddrs()
-
-	if err != nil {
-		panic(err)
-	}
 }

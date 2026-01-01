@@ -29,7 +29,7 @@ func Unmarshal[T Packet](data []byte, zero T) error {
 	if err := h.Unmarshal(data); err != nil {
 		return err
 	}
-	if err := zero.Unmarshal(data[h.Len():]); err != nil {
+	if err := zero.Unmarshal(data[h.Len():zero.Len()]); err != nil {
 		return err
 	}
 	return nil
