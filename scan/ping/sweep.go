@@ -45,9 +45,10 @@ func Sweep(ifaces []net.Interface) {
 					}
 					var icmpResponse icmp.EchoICMPPacket
 
-					if err := proto.Unmarshal(res.Data, &icmpResponse, int(res.TotalLength)-res.VersionIHL.Size()); err != nil {
+					if err := proto.Unmarshal(res.Data, &icmpResponse); err != nil {
 						return
 					}
+
 					fmt.Println(fmt.Sprintf("Host %s is up!", ip.String()))
 				}()
 			}

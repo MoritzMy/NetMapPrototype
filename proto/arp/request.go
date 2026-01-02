@@ -21,8 +21,8 @@ const (
 	ARPRequestPayloadSize = 28
 )
 
-// ARPRequest represents an ARP Request Packet structure. For more information see RFC 826.
-type ARPRequest struct {
+// Request represents an ARP Request Packet structure. For more information see RFC 826.
+type Request struct {
 	EthernetHeader *eth.EthernetHeader
 	HTYPE          uint16
 	PTYPE          uint16
@@ -35,11 +35,11 @@ type ARPRequest struct {
 	TargetIP       net.IP
 }
 
-func (packet *ARPRequest) GetHeaders() proto.Header {
+func (packet *Request) GetHeaders() proto.Header {
 	return packet.EthernetHeader
 }
 
-func (packet *ARPRequest) SetHeaders(header proto.Header) {
+func (packet *Request) SetHeaders(header proto.Header) {
 	hdr, ok := header.(*eth.EthernetHeader)
 	if !ok {
 		panic("Wrong Header for ARP")
@@ -47,15 +47,15 @@ func (packet *ARPRequest) SetHeaders(header proto.Header) {
 	packet.EthernetHeader = hdr
 }
 
-func (packet *ARPRequest) Len() int {
+func (packet *Request) Len() int {
 	return 28
 }
 
-func NewARPRequest(sourceMAC net.HardwareAddr, sourceIP net.IP, targetIP net.IP) ARPRequest {
+func NewARPRequest(sourceMAC net.HardwareAddr, sourceIP net.IP, targetIP net.IP) Request {
 	dest := net.HardwareAddr{0xff, 0xff, 0xff, 0xff, 0xff, 0xff}
 	targetMAC := net.HardwareAddr{0x00, 0x00, 0x00, 0x00, 0x00, 0x00}
 
-	return ARPRequest{
+	return Request{
 		EthernetHeader: eth.NewEthernetHeader(dest, sourceMAC, ARPetherType),
 		HTYPE:          HTYPEEthernet,
 		PTYPE:          PTYPEIPv4,
@@ -70,7 +70,7 @@ func NewARPRequest(sourceMAC net.HardwareAddr, sourceIP net.IP, targetIP net.IP)
 
 }
 
-func (packet *ARPRequest) Marshal() ([]byte, error) {
+func (packet *Request) Marshal() ([]byte, error) {
 	if len(packet.SourceMAC) != 6 || len(packet.TargetMAC) != 6 {
 		return nil, errors.New(fmt.Sprintf("invalid MAC length : %v or %v are faulty", packet.SourceMAC, packet.TargetMAC))
 	}
@@ -91,7 +91,7 @@ func (packet *ARPRequest) Marshal() ([]byte, error) {
 	return b, nil
 }
 
-func (packet *ARPRequest) Unmarshal(b []byte) error {
+func (packet *Request) Unmarshal(b []byte) error {
 	packet.HTYPE = binary.BigEndian.Uint16(b[0:2])
 	packet.PTYPE = binary.BigEndian.Uint16(b[2:4])
 	packet.HLEN = b[4]

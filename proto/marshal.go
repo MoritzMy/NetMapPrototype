@@ -20,17 +20,11 @@ func Marshal[T Packet](packet T) ([]byte, error) {
 }
 
 // Unmarshal unmarshals data into the provided zero Packet of type T. If ctx is non-zero, it indicates the length of the header context to consider during unmarshaling.
-func Unmarshal[T Packet](data []byte, zero T, ctx int) error {
+func Unmarshal[T Packet](data []byte, zero T) error {
 	h := zero.GetHeaders()
 
 	if err := h.Unmarshal(data); err != nil {
 		return err
-	}
-	if ctx != 0 {
-		if err := zero.Unmarshal(data[h.Len():ctx]); err != nil {
-			return err
-		}
-		return nil
 	}
 
 	if err := zero.Unmarshal(data[h.Len():]); err != nil {

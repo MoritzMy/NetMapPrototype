@@ -36,6 +36,7 @@ func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 			log.Println("error occurred while sending ARP request:", err)
 			return false
 		}
+
 	}
 	return true
 

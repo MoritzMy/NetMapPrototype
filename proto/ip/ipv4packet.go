@@ -38,7 +38,7 @@ func (packet *IPv4Packet) Marshal() ([]byte, error) {
 }
 
 func (packet *IPv4Packet) Unmarshal(b []byte) error {
-	packet.Data = b
+	packet.Data = b[:int(packet.Header.TotalLength)-packet.Header.VersionIHL.Size()]
 
 	return nil
 }
