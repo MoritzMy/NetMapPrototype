@@ -27,7 +27,31 @@ NetMap only supports IPv4 as of now
 
   Iterates over all Interfaces and Ping Sweeps each Subnet of the Interface IP Adress
 
-  
+## Usage
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/MoritzMy/NetMap
+    ```
+   
+2. Navigate to the project directory:
+   ```bash
+   cd NetMap
+   ```
+   
+3. Build the project:
+   ```bash
+   go build -o netmap main.go
+   ```
+   
+4. Run the tool with appropriate permissions: requires `sudo` for raw socket access:
+   ```bash
+   sudo ./netmap <flags>
+    ```
+## Flags
+
+- `-arp-scan` : Perform an ARP scan on all interfaces
+- `-ping-sweep` : Perform a ping sweep on all interfaces
+   
 ## Project Status
 
 **WIP**

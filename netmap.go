@@ -10,8 +10,8 @@ import (
 )
 
 func main() {
-	arp := flag.Bool("arp", false, "Run ARP Discovery Scan")
-	icmp := flag.Bool("icmp", false, "Run ICMP Sweep")
+	arp := flag.Bool("arp-scan", false, "Run ARP Discovery Scan")
+	icmp := flag.Bool("ping-sweep", false, "Run ICMP Sweep")
 
 	flag.Parse()
 
