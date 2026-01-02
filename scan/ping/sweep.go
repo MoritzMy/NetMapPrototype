@@ -48,7 +48,7 @@ func Sweep(ifaces []net.Interface) {
 					if err := proto.Unmarshal(res.Data, &icmpResponse, int(res.TotalLength)-res.VersionIHL.Size()); err != nil {
 						return
 					}
-					fmt.Println(fmt.Sprintf("Host %s is up! ICMP Response: %+v", ip.String(), icmpResponse))
+					fmt.Println(fmt.Sprintf("Host %s is up!", ip.String()))
 				}()
 			}
 

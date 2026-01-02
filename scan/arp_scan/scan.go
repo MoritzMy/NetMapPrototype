@@ -2,6 +2,7 @@ package arp_scan
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 	"sync"
@@ -48,6 +49,9 @@ func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 }
 
 func ScanNetwork(iface net.Interface) error {
+	if sumBytes(iface.HardwareAddr) == 0 {
+		return fmt.Errorf("interface %s has no MAC address, skipping ARP scan", iface.Name)
+	}
 	addrs, err := iface.Addrs()
 	if err != nil {
 		return err
@@ -94,4 +98,12 @@ func ScanNetwork(iface net.Interface) error {
 	<-ctx.Done()
 
 	return nil
+}
+
+func sumBytes(b []byte) int {
+	sum := 0
+	for _, byteVal := range b {
+		sum += int(byteVal)
+	}
+	return sum
 }
