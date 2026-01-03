@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/MoritzMy/NetMap/cmd/scan/arp_scan"
+	"github.com/MoritzMy/NetMap/cmd/arp_scan"
 	icmp2 "github.com/MoritzMy/NetMap/internal/proto/icmp"
 	"github.com/MoritzMy/NetMap/internal/proto/ip"
 )

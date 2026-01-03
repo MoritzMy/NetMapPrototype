@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/MoritzMy/NetMap/cmd/scan/arp_scan"
-	"github.com/MoritzMy/NetMap/cmd/scan/ping"
+	"github.com/MoritzMy/NetMap/cmd/arp_scan"
+	"github.com/MoritzMy/NetMap/cmd/ping"
 )
 
 func main() {
