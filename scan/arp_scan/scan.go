@@ -43,7 +43,7 @@ func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 }
 
 func ScanNetwork(iface net.Interface) error {
-	if sumBytes(iface.HardwareAddr) == 0 {
+	if SumBytes(iface.HardwareAddr) == 0 {
 		return fmt.Errorf("interface %s has no MAC address, skipping ARP scan", iface.Name)
 	}
 	addrs, err := iface.Addrs()
@@ -66,8 +66,8 @@ func ScanNetwork(iface net.Interface) error {
 
 	go func() {
 		for res := range ch {
-			if eth.IsVrrpMulticastMAC(res.MAC) {
-				fmt.Println("Vrrp found")
+			if eth.IsVRRPMulticastMAC(res.MAC) {
+				fmt.Println("VRRP found")
 			}
 			log.Println("Received ARP response from", res.IP, "with MAC", res.MAC)
 			count++
@@ -109,8 +109,8 @@ func ScanNetwork(iface net.Interface) error {
 	return nil
 }
 
-// sumBytes returns the sum of all byte values in the given slice.
-func sumBytes(b []byte) int {
+// SumBytes returns the sum of all byte values in the given slice.
+func SumBytes(b []byte) int {
 	sum := 0
 	for _, byteVal := range b {
 		sum += int(byteVal)

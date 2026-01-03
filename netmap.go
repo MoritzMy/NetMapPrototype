@@ -36,6 +36,7 @@ func runARPScan() {
 	}
 
 	for _, iface := range ifaces {
+		fmt.Printf("Starting ARP Scan on interface %s\n", iface.Name)
 		if err := arp_scan.ScanNetwork(iface); err != nil {
 			fmt.Printf("Error scanning network on interface %s: %v\n", iface.Name, err)
 		}
@@ -49,5 +50,10 @@ func runICMPSweep() {
 		return
 	}
 
-	ping.Sweep(ifaces)
+	for _, iface := range ifaces {
+		fmt.Printf("Starting ICMP Sweep on interface %s\n", iface.Name)
+		if err := ping.Sweep(iface); err != nil {
+			fmt.Printf("Error during ICMP Sweep on interface %s: %v\n", iface.Name, err)
+		}
+	}
 }
