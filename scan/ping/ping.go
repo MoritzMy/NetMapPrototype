@@ -14,7 +14,7 @@ import (
 	"github.com/MoritzMy/NetMap/scan/arp_scan"
 )
 
-// Sweep performs a Ping Sweep over the given List of Network Adresses
+// Sweep performs a Ping Sweep over the given List of Network Adresses on the specified network interface.
 func Sweep(iface net.Interface) error {
 	var count atomic.Int64
 	ticker := time.NewTicker(time.Millisecond * 10) // Throttle request rate
