@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/MoritzMy/NetMap/scan/arp_scan"
-	"github.com/MoritzMy/NetMap/scan/ping"
+	"github.com/MoritzMy/NetMap/cmd/scan/arp_scan"
+	"github.com/MoritzMy/NetMap/cmd/scan/ping"
 )
 
 func main() {
@@ -37,7 +37,7 @@ func runARPScan() {
 
 	for _, iface := range ifaces {
 		fmt.Printf("Starting ARP Scan on interface %s\n", iface.Name)
-		if err := arp_scan.ScanNetwork(iface); err != nil {
+		if err := arp_scan.Scan(iface); err != nil {
 			fmt.Printf("Error scanning network on interface %s: %v\n", iface.Name, err)
 		}
 	}

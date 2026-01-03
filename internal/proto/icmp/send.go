@@ -3,7 +3,7 @@ package icmp
 import (
 	"net"
 
-	"github.com/MoritzMy/NetMap/proto"
+	"github.com/MoritzMy/NetMap/internal/proto"
 )
 
 func SendPing(conn net.PacketConn, dst net.IP, id, seq uint16) error {

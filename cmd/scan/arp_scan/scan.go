@@ -10,10 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/MoritzMy/NetMap/proto"
-	"github.com/MoritzMy/NetMap/proto/arp"
-	eth "github.com/MoritzMy/NetMap/proto/ethernet"
-	ip "github.com/MoritzMy/NetMap/proto/ip"
+	"github.com/MoritzMy/NetMap/internal/proto"
+	arp2 "github.com/MoritzMy/NetMap/internal/proto/arp"
+	eth2 "github.com/MoritzMy/NetMap/internal/proto/ethernet"
+	"github.com/MoritzMy/NetMap/internal/proto/ip"
 )
 
 // SendARPRequest constructs and sends an ARP request for the given target IP on the specified interface.
@@ -26,13 +26,13 @@ func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 			continue
 		}
 
-		req := arp.NewARPRequest(iface.HardwareAddr, sourceIPNet.IP, targetIP) // Create ARP request
+		req := arp2.NewARPRequest(iface.HardwareAddr, sourceIPNet.IP, targetIP) // Create ARP request
 		b, err := proto.Marshal(&req)
 		if err != nil {
 			log.Println("error occurred while marshalling ARP request:", err)
 			return false
 		}
-		err = eth.SendEthernetFrame(b, iface.Name, fd) // Send ARP request
+		err = eth2.SendEthernetFrame(b, iface.Name, fd) // Send ARP request
 		if err != nil {
 			log.Println("error occurred while sending ARP request:", err)
 			return false
@@ -43,7 +43,7 @@ func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 
 }
 
-func ScanNetwork(iface net.Interface) error {
+func Scan(iface net.Interface) error {
 	if SumBytes(iface.HardwareAddr) == 0 {
 		return fmt.Errorf("interface %s has no MAC address, skipping ARP scan", iface.Name)
 	}
@@ -52,7 +52,7 @@ func ScanNetwork(iface net.Interface) error {
 		return err
 	}
 
-	fd, err := eth.CreateSocket(&iface)
+	fd, err := eth2.CreateSocket(&iface)
 	if err != nil {
 		return err
 	}
@@ -61,13 +61,13 @@ func ScanNetwork(iface net.Interface) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	ch := arp.ARPResponseListener(fd, ctx)
+	ch := arp2.ARPResponseListener(fd, ctx)
 
 	var count atomic.Int64
 
 	go func() {
 		for res := range ch {
-			if eth.IsVRRPMulticastMAC(res.MAC) {
+			if eth2.IsVRRPMulticastMAC(res.MAC) {
 				fmt.Println("VRRP found")
 			}
 			log.Println("Received ARP response from", res.IP, "with MAC", res.MAC)

@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/MoritzMy/NetMap/proto"
+	"github.com/MoritzMy/NetMap/internal/proto"
 )
 
 const (
