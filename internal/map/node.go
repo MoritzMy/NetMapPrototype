@@ -18,15 +18,16 @@ type Node struct {
 	Type       NodeType
 	IP         net.IP
 	MAC        net.HardwareAddr
+	Protocols  map[string]bool
 	Vendor     string
 	Confidence float64
 }
 
-func newNode(ip net.IP) Node {
+func newNode(id string) Node {
 	return Node{
-		ID:     "ip:" + ip.String(),
-		Type:   NodeUnknown,
-		IP:     ip,
-		Vendor: "unknown",
+		ID:        id,
+		Type:      NodeUnknown,
+		Protocols: make(map[string]bool),
+		Vendor:    "unknown",
 	}
 }
