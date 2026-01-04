@@ -7,7 +7,7 @@ import (
 
 	"github.com/MoritzMy/NetMap/cmd/arp_scan"
 	"github.com/MoritzMy/NetMap/cmd/ping"
-	_map "github.com/MoritzMy/NetMap/internal/graphing"
+	"github.com/MoritzMy/NetMap/internal/graphing"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 
 	flag.Parse()
 
-	graph := _map.NewGraph()
+	graph := graphing.NewGraph()
 
 	if *arp {
 		runARPScan(graph)
@@ -29,6 +29,10 @@ func main() {
 
 	if !*arp && !*icmp {
 		fmt.Println("Please specify a scan type. Use -h for help.")
+	}
+
+	for node := range graph.Nodes {
+		graph.GetOrCreateNode(node).EnrichNode() // Enrich nodes with additional information
 	}
 
 	if *dot_file != "" {
@@ -43,7 +47,7 @@ func main() {
 	fmt.Println(graph)
 }
 
-func runARPScan(graph *_map.Graph) {
+func runARPScan(graph *graphing.Graph) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		fmt.Println("Error getting network interfaces:", err)
@@ -56,8 +60,12 @@ func runARPScan(graph *_map.Graph) {
 		for ev := range in {
 			fmt.Printf("Discovered device - IP: %s, MAC: %s, Network: %s, Source: %s\n", ev.IP, ev.MAC, ev.Network, ev.Source)
 			node := graph.GetOrCreateNode("ip:" + ev.IP.String())
+			node.MAC = ev.MAC
+			node.IP = ev.IP
 			node.Protocols["arp"] = true
-			graph.AddEdge(node.ID, graph.GetOrCreateNode("net:"+ev.Network.String()).ID, _map.EdgeMemberOf)
+			netNode := graph.GetOrCreateNode("net:" + ev.Network.String())
+			netNode.Type = graphing.NodeNetwork
+			graph.AddEdge(node.ID, netNode.ID, graphing.EdgeMemberOf)
 		}
 	}()
 
@@ -72,7 +80,7 @@ func runARPScan(graph *_map.Graph) {
 
 }
 
-func runICMPSweep(graph *_map.Graph) {
+func runICMPSweep(graph *graphing.Graph) {
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		fmt.Println("Error getting network interfaces:", err)

@@ -9,14 +9,14 @@ import (
 
 type Graph struct {
 	Edges []*Edge
-	Nodes map[string]Node
+	Nodes map[string]*Node
 	mu    sync.Mutex
 }
 
 func NewGraph() *Graph {
 	return &Graph{
 		Edges: make([]*Edge, 0),
-		Nodes: make(map[string]Node),
+		Nodes: make(map[string]*Node),
 	}
 }
 
@@ -25,13 +25,13 @@ func (g *Graph) GetOrCreateNode(id string) *Node {
 	defer g.mu.Unlock()
 
 	if node, exists := g.Nodes[id]; exists {
-		return &node
+		return node
 	}
 
 	newNode := newNode(id)
 
 	g.Nodes[id] = newNode
-	return &newNode
+	return newNode
 }
 
 func (g *Graph) AddEdge(fromID, toID string, edgeType EdgeType) {
@@ -46,8 +46,8 @@ func (g *Graph) AddEdge(fromID, toID string, edgeType EdgeType) {
 	}
 
 	edge := &Edge{
-		From: &fromNode,
-		To:   &toNode,
+		From: fromNode,
+		To:   toNode,
 		Type: edgeType,
 	}
 	g.Edges = append(g.Edges, edge)
@@ -69,12 +69,13 @@ func (g *Graph) String() string {
 	result := "Graph:\n"
 	result += "Nodes:\n"
 	for _, node := range g.Nodes {
-		result += fmt.Sprintf("- ID: %s responded to: %v\n", node.ID, node.Protocols)
+		result += fmt.Sprintf("- ID: %s responded to: %v and has Type: %v\n", node.ID, node.Protocols, node.Type)
 	}
 	result += "Edges:\n"
 	for _, edge := range g.Edges {
 		result += "- From: " + edge.From.ID + " To: " + edge.To.ID + " Type: " + string(edge.Type) + "\n"
 	}
+
 	return result
 }
 
