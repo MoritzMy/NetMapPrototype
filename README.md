@@ -2,18 +2,8 @@
 
 ## About
 
-> [!CAUTION]
-> This tool is built for educational purposes and to gain a deeper understanding of low-level networking concepts.
-> It is **not intended for production or enterprise environments**.
 
-NetMap is a network topology exploration tool that uses **ICMP-based traceroutes** to infer connections between devices within a network.
-
-The primary goal of this project is **learning and experimentation**. Core networking mechanisms such as traceroute logic, ICMP packet marshaling/unmarshaling, response parsing, and route construction are **implemented manually** to provide deeper insight into how these protocols work at a low level.
-
-Rather than relying on existing high-level libraries, NetMap focuses on understanding:
-- How ICMP Echo and Time Exceeded messages work
-- How TTL-based probing reveals routing paths
-- How hop-by-hop paths can be aggregated into a graph representation
+NetMap is a network topology exploration tool that uses different Protocol Scans (ICMP, ARP, ...) to infer connections between devices within a network.
 
 ## Features
 

@@ -14,6 +14,7 @@ import (
 	arp2 "github.com/MoritzMy/NetMap/internal/proto/arp"
 	eth2 "github.com/MoritzMy/NetMap/internal/proto/ethernet"
 	"github.com/MoritzMy/NetMap/internal/proto/ip"
+	"github.com/endobit/oui"
 )
 
 // SendARPRequest constructs and sends an ARP request for the given target IP on the specified interface.
@@ -43,18 +44,18 @@ func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 
 }
 
-func Scan(iface net.Interface) error {
+func Scan(iface net.Interface) ([]arp2.Reply, error) {
 	if SumBytes(iface.HardwareAddr) == 0 {
-		return fmt.Errorf("interface %s has no MAC address, skipping ARP scan", iface.Name)
+		return nil, fmt.Errorf("interface %s has no MAC address, skipping ARP scan", iface.Name)
 	}
 	addrs, err := iface.Addrs()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	fd, err := eth2.CreateSocket(&iface)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer syscall.Close(fd)
 
@@ -65,12 +66,15 @@ func Scan(iface net.Interface) error {
 
 	var count atomic.Int64
 
+	replies := make([]arp2.Reply, 0)
+
 	go func() {
 		for res := range ch {
 			if eth2.IsVRRPMulticastMAC(res.MAC) {
 				fmt.Println("VRRP found")
 			}
-			log.Println("Received ARP response from", res.IP, "with MAC", res.MAC)
+			log.Println("Received ARP response from", res.IP, "with MAC", res.MAC, "and Vendor", oui.VendorFromMAC(res.MAC))
+			replies = append(replies, res)
 			count.Add(1)
 		}
 	}()
@@ -110,7 +114,7 @@ func Scan(iface net.Interface) error {
 
 	fmt.Println(fmt.Sprintf("%d ARP packets received", count.Load()))
 
-	return nil
+	return replies, nil
 }
 
 // SumBytes returns the sum of all byte values in the given slice.

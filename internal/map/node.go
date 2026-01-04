@@ -1,6 +1,8 @@
 package _map
 
-import "net"
+import (
+	"net"
+)
 
 type NodeType int
 
@@ -18,4 +20,13 @@ type Node struct {
 	MAC        net.HardwareAddr
 	Vendor     string
 	Confidence float64
+}
+
+func newNode(ip net.IP) Node {
+	return Node{
+		ID:     "ip:" + ip.String(),
+		Type:   NodeUnknown,
+		IP:     ip,
+		Vendor: "unknown",
+	}
 }
