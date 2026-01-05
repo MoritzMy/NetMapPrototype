@@ -62,6 +62,31 @@ func (g *Graph) AddProtocol(id, proto string) {
 	}
 }
 
+func (g *Graph) LinkNetworkToGateway() {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+
+	for _, edge := range g.Edges {
+		if edge.Type == EdgeMemberOf {
+			if edge.From.Type == NodeNetwork && edge.To.Type == NodeGateway {
+				routeEdge := &Edge{
+					From: edge.From,
+					To:   edge.To,
+					Type: EdgeRouteVia,
+				}
+				g.Edges = append(g.Edges, routeEdge)
+			} else if edge.To.Type == NodeNetwork && edge.From.Type == NodeGateway {
+				routeEdge := &Edge{
+					From: edge.To,
+					To:   edge.From,
+					Type: EdgeRouteVia,
+				}
+				g.Edges = append(g.Edges, routeEdge)
+			}
+		}
+	}
+}
+
 func (g *Graph) String() string {
 	g.mu.Lock()
 	defer g.mu.Unlock()

@@ -35,6 +35,8 @@ func main() {
 		graph.GetOrCreateNode(node).EnrichNode() // Enrich nodes with additional information
 	}
 
+	graph.LinkNetworkToGateway()
+
 	if *dot_file != "" {
 		err := graph.ExportToDOT(*dot_file)
 		if err != nil {

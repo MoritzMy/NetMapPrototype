@@ -48,7 +48,7 @@ func (n *Node) EnrichNode() {
 		n.Confidence += 0.6
 	}
 
-	if n.Confidence > 1.0 && n.Type == NodeUnknown {
+	if n.Confidence >= 1.0 && n.Type != NodeHost {
 		n.Type = NodeGateway
 	} else if n.Type != NodeNetwork {
 		n.Type = NodeHost
