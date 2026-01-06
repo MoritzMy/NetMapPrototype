@@ -41,6 +41,7 @@ NetMap only supports IPv4 as of now
 
 - `-arp-scan` : Perform an ARP scan on all interfaces
 - `-ping-sweep` : Perform a ping sweep on all interfaces
+- `-dot-file <output-file-name>` : Name of the exported .dot file for graphviz
    
 ## Project Status
 
