@@ -9,7 +9,7 @@ const (
 )
 
 type Edge struct {
-	From *Node
-	To   *Node
-	Type EdgeType
+	From *Node    `json:"-"`
+	To   *Node    `json:"-"`
+	Type EdgeType `json:"type"`
 }

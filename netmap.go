@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"os"
+	"path/filepath"
 
 	"github.com/MoritzMy/NetMap/cmd/arp_scan"
 	"github.com/MoritzMy/NetMap/cmd/ping"
@@ -36,6 +38,24 @@ func main() {
 	}
 
 	graph.LinkNetworkToGateway()
+
+	json, err := graph.MarshalJSON()
+
+	if err != nil {
+		fmt.Printf("Could not create json file", err)
+	}
+
+	fmt.Printf(string(json))
+
+	wd, err := os.Getwd()
+
+	outPath := filepath.Join(wd, "graph.json")
+
+	err = os.WriteFile(outPath, json, 0644)
+
+	if err != nil {
+		fmt.Printf("Could not Write to File")
+	}
 
 	if *dot_file != "" {
 		err := graph.ExportToDOT(*dot_file)

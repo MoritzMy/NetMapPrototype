@@ -18,13 +18,13 @@ const (
 )
 
 type Node struct {
-	ID         string
-	Type       NodeType
-	IP         net.IP
-	MAC        net.HardwareAddr
-	Protocols  map[string]bool
-	Vendor     string
-	Confidence float64
+	ID         string           `json:"id"`
+	Type       NodeType         `json:"type"`
+	IP         net.IP           `json:"ip"`
+	MAC        net.HardwareAddr `json:"mac"`
+	Protocols  map[string]bool  `json:"protocols"`
+	Vendor     string           `json:"vendor"`
+	Confidence float64          `json:"confidence"`
 }
 
 func newNode(id string) *Node {

@@ -1,7 +1,9 @@
 package graphing
 
 import (
+	"encoding/json"
 	"fmt"
+	"net"
 	"os"
 	"strings"
 	"sync"
@@ -156,4 +158,59 @@ func (g *Graph) ExportToDOT(filename string) error {
 	dot := g.ToDOT()
 	err := os.WriteFile(filename+".dot", []byte(dot), 0644)
 	return err
+}
+
+type graphJSON struct {
+	Nodes []graphNode `json:"nodes"`
+	Links []graphLink `json:"links"`
+}
+
+type graphLink struct {
+	Source string `json:"source"`
+	Target string `json:"target"`
+	Type   string `json:"type"`
+}
+
+type graphNode struct {
+	ID         string          `json:"id"`
+	Type       NodeType        `json:"type"`
+	IP         net.IP          `json:"ip"`
+	MAC        string          `json:"mac"`
+	Protocols  map[string]bool `json:"protocols"`
+	Vendor     string          `json:"vendor"`
+	Confidence float64         `json:"confidence"`
+}
+
+func (g *Graph) MarshalJSON() ([]byte, error) {
+	nodes := make([]graphNode, 0, len(g.Nodes))
+
+	for _, n := range g.Nodes {
+		nodes = append(nodes, graphNode{
+			ID:         n.ID,
+			Type:       n.Type,
+			IP:         n.IP,
+			MAC:        n.MAC.String(),
+			Protocols:  n.Protocols,
+			Vendor:     n.Vendor,
+			Confidence: n.Confidence,
+		})
+	}
+
+	links := make([]graphLink, 0, len(g.Edges))
+	for _, e := range g.Edges {
+		if e.From == nil || e.To == nil {
+			return nil, fmt.Errorf("edge cannot be marshalled: missing from or to")
+		}
+
+		links = append(links, graphLink{
+			Source: e.From.ID,
+			Target: e.To.ID,
+			Type:   string(e.Type),
+		})
+	}
+
+	return json.Marshal(graphJSON{
+		Nodes: nodes,
+		Links: links,
+	})
 }
