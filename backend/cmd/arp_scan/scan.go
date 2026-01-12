@@ -10,14 +10,15 @@ import (
 	"syscall"
 	"time"
 
+	graphing2 "github.com/MoritzMy/NetMap/backend/internal/graphing"
 	"github.com/MoritzMy/NetMap/backend/internal/proto"
 	"github.com/MoritzMy/NetMap/backend/internal/proto/arp"
 	eth2 "github.com/MoritzMy/NetMap/backend/internal/proto/ethernet"
 	"github.com/MoritzMy/NetMap/backend/internal/proto/ip"
 )
 
-// SendARPRequest constructs and sends an ARP request for the given target IP on the specified interface.
-func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
+// sendARPRequest constructs and sends an ARP request for the given target IP on the specified interface.
+func sendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 	addrs, _ := iface.Addrs()
 
 	for _, addr := range addrs {
@@ -43,7 +44,7 @@ func SendARPRequest(iface net.Interface, targetIP net.IP, fd int) bool {
 
 }
 
-func Scan(iface net.Interface, out chan<- ARPEvent) error {
+func ScanInterface(iface net.Interface, out chan<- ARPEvent) error {
 	if SumBytes(iface.HardwareAddr) == 0 {
 		return fmt.Errorf("interface %s has no MAC address, skipping ARP scan", iface.Name)
 	}
@@ -97,7 +98,7 @@ func Scan(iface net.Interface, out chan<- ARPEvent) error {
 			ip := ip          // Capture range variable
 			wg.Go(func() {
 				defer func() { <-sem }() // Release semaphore
-				SendARPRequest(iface, ip, fd)
+				sendARPRequest(iface, ip, fd)
 			})
 		}
 
@@ -121,4 +122,36 @@ func SumBytes(b []byte) int {
 		sum += int(byteVal)
 	}
 	return sum
+}
+
+func RunARPScan(graph *graphing2.Graph) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		fmt.Println("Error getting network interfaces:", err)
+		return
+	}
+
+	in := make(chan ARPEvent)
+
+	go func() {
+		for ev := range in {
+			fmt.Printf("Discovered device - IP: %s, MAC: %s, Network: %s, Source: %s\n", ev.IP, ev.MAC, ev.Network, ev.Source)
+			node := graph.GetOrCreateNode("ip:" + ev.IP.String())
+			node.MAC = ev.MAC
+			node.IP = ev.IP
+			node.Protocols["arp"] = true
+			netNode := graph.GetOrCreateNode("net:" + ev.Network.String())
+			netNode.Type = graphing2.NodeNetwork
+			graph.AddEdge(node.ID, netNode.ID, graphing2.EdgeMemberOf)
+		}
+	}()
+
+	for _, iface := range ifaces {
+		fmt.Printf("Starting ARP ScanInterface on interface %s\n", iface.Name)
+		err := ScanInterface(iface, in)
+		if err != nil {
+			fmt.Printf("Error scanning network on interface %s: %v\n", iface.Name, err)
+			continue
+		}
+	}
 }

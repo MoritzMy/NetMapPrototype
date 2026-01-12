@@ -9,7 +9,7 @@ NetMap is a network topology exploration tool that uses different Protocol Scans
 
 NetMap only supports IPv4 as of now
 
-- ARP-Scan
+- ARP-ScanInterface
 
   Iterates over all Interfaces and sends an ARP Request for all possible IPs in the Subnet of the Interface IP Adress
   

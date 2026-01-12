@@ -1,4 +1,4 @@
-module github.com/MoritzMy/NetMap
+module github.com/MoritzMy/NetMap/backend
 
 go 1.25.4
 

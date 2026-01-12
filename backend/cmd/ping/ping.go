@@ -10,12 +10,13 @@ import (
 	"time"
 
 	"github.com/MoritzMy/NetMap/backend/cmd/arp_scan"
+	"github.com/MoritzMy/NetMap/backend/internal/graphing"
 	"github.com/MoritzMy/NetMap/backend/internal/proto/icmp"
 	"github.com/MoritzMy/NetMap/backend/internal/proto/ip"
 )
 
-// Sweep performs a Ping Sweep over the given List of Network Adresses on the specified network interface.
-func Sweep(iface net.Interface, out chan<- net.IP) error {
+// SweepInterface performs a Ping SweepInterface over the given List of Network Adresses on the specified network interface.
+func SweepInterface(iface net.Interface, out chan<- net.IP) error {
 	var count atomic.Int64
 	ticker := time.NewTicker(time.Millisecond * 10) // Throttle request rate
 	defer ticker.Stop()
@@ -91,4 +92,28 @@ func Sweep(iface net.Interface, out chan<- net.IP) error {
 
 	fmt.Println(fmt.Sprintf("Ping Sweep complete, %d hosts are up!", count.Load()))
 	return nil
+}
+
+func RunICMPSweep(graph *graphing.Graph) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		fmt.Println("Error getting network interfaces:", err)
+		return
+	}
+	in := make(chan net.IP)
+
+	go func() {
+		for ip := range in {
+			fmt.Printf("Discovered host - IP: %s\n", ip)
+			node := graph.GetOrCreateNode("ip:" + ip.String())
+			node.Protocols["icmp"] = true
+		}
+	}()
+
+	for _, iface := range ifaces {
+		fmt.Printf("Starting ICMP Sweep on interface %s\n", iface.Name)
+		if err := SweepInterface(iface, in); err != nil {
+			fmt.Printf("Error during ICMP Sweep on interface %s: %v\n", iface.Name, err)
+		}
+	}
 }
