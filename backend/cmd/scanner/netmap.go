@@ -33,12 +33,6 @@ func main() {
 		fmt.Println("Please specify a scan type. Use -h for help.")
 	}
 
-	for node := range graph.Nodes {
-		graph.GetOrCreateNode(node).EnrichNode() // Enrich nodes with additional information
-	}
-
-	graph.LinkNetworkToGateway()
-
 	if *json_file != "" {
 		json, err := graph.MarshalJSON()
 

@@ -23,7 +23,7 @@ const (
 
 // Request represents an ARP Request Packet structure. For more information see RFC 826.
 type Request struct {
-	EthernetHeader *eth.eth
+	EthernetHeader *eth.EthernetHeader
 	HTYPE          uint16
 	PTYPE          uint16
 	HLEN           uint8

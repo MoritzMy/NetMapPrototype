@@ -108,6 +108,7 @@ func RunICMPSweep(graph *graphing.Graph) {
 			node := graph.GetOrCreateNode("ip:" + ip.String())
 			node.Protocols["icmp"] = true
 		}
+		graph.LinkNetworkToGateway()
 	}()
 
 	for _, iface := range ifaces {

@@ -16,7 +16,9 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	http.HandleFunc("/api/arp_scan", api.GetGraph(g))
+	http.HandleFunc("/api/graph", api.GetGraph(g))
+	http.HandleFunc("/api/icmp-sweep", api.RunICMPSweepHandler(g))
+	http.HandleFunc("/api/arp-scan", api.RunARPScanHandler(g))
 
 	log.Println("Listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))

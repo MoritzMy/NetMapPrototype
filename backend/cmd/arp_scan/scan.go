@@ -144,6 +144,13 @@ func RunARPScan(graph *graphing2.Graph) {
 			netNode.Type = graphing2.NodeNetwork
 			graph.AddEdge(node.ID, netNode.ID, graphing2.EdgeMemberOf)
 		}
+
+		for node := range graph.Nodes {
+			graph.GetOrCreateNode(node).EnrichNode() // Enrich nodes with additional information
+		}
+
+		graph.LinkNetworkToGateway()
+
 	}()
 
 	for _, iface := range ifaces {
