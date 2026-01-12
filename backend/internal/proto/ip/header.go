@@ -7,9 +7,9 @@ import (
 )
 
 const (
-	IHLHeaderByteIncrement = 4
+	ihlHeaderByteIncrement = 4
 	halfByte               = 4
-	MinIPPacketSize        = 20
+	minIPPacketSize        = 20
 )
 
 // Header represents an IPv4 Header structure. For more information see RFC 791.
@@ -39,7 +39,7 @@ func (header *Header) Len() int {
 
 // Unmarshal provides a way to unmarshal the IP IPv4Packet Payload separately from the Headers
 func (header *Header) Unmarshal(b []byte) error {
-	if len(b) < MinIPPacketSize {
+	if len(b) < minIPPacketSize {
 		return fmt.Errorf("packet smaller than the minimum IP packet size")
 	}
 

@@ -19,7 +19,7 @@ func (header IPv4VersionIHL) Size() int {
 	if header.version != 4 {
 		return 0 // encountered non IPv4 Header
 	}
-	return int(header.IHL) * IHLHeaderByteIncrement
+	return int(header.IHL) * ihlHeaderByteIncrement
 }
 
 func (header IPv4VersionIHL) String() string {
