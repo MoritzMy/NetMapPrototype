@@ -49,7 +49,9 @@ body {
 .actions {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 button {
@@ -74,12 +76,29 @@ button:hover:not(:disabled) {
   box-shadow: 0 8px 20px rgba(143, 211, 255, 0.35);
 }
 
+button.secondary {
+  background: rgba(245, 247, 255, 0.08);
+  color: #f5f7ff;
+  border: 1px solid rgba(245, 247, 255, 0.2);
+  box-shadow: none;
+}
+
+button.secondary:hover:not(:disabled) {
+  box-shadow: 0 8px 20px rgba(210, 182, 255, 0.25);
+}
+
 .status {
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
   color: rgba(245, 247, 255, 0.8);
+}
+
+.scan-status {
+  padding: 8px 32px 0;
+  font-size: 13px;
+  color: rgba(245, 247, 255, 0.7);
 }
 
 .status-dot {

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 
 const NODE_TYPES = {
@@ -49,7 +49,10 @@ function App() {
   const [graphData, setGraphData] = useState(DEFAULT_GRAPH);
   const [status, setStatus] = useState('idle');
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [scanStatus, setScanStatus] = useState('');
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
   const graphRef = useRef(null);
+  const graphContainerRef = useRef(null);
 
   const fetchGraph = useCallback(async () => {
     setStatus('loading');
@@ -67,6 +70,23 @@ function App() {
     }
   }, []);
 
+  const triggerScan = useCallback(
+    async (endpoint, label) => {
+      setScanStatus(`${label} requested...`);
+      try {
+        const response = await fetch(endpoint, { method: 'POST' });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        setScanStatus(`${label} started.`);
+        fetchGraph();
+      } catch (error) {
+        setScanStatus(`${label} failed. Check the backend service.`);
+      }
+    },
+    [fetchGraph]
+  );
+
   useEffect(() => {
     fetchGraph();
     const interval = setInterval(fetchGraph, 10000);
@@ -75,9 +95,39 @@ function App() {
 
   useEffect(() => {
     if (graphRef.current && graphData.nodes.length > 0) {
-      graphRef.current.zoomToFit(400, 80);
+      requestAnimationFrame(() => {
+        graphRef.current.centerAt(0, 0, 400);
+        graphRef.current.zoomToFit(500, 120);
+      });
     }
   }, [graphData]);
+
+  useLayoutEffect(() => {
+    const container = graphContainerRef.current;
+    if (!container) return;
+
+    const observer = new ResizeObserver((entries) => {
+      if (!entries.length) return;
+      const { width, height } = entries[0].contentRect;
+      setDimensions({
+        width: Math.max(1, Math.floor(width)),
+        height: Math.max(1, Math.floor(height))
+      });
+    });
+
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, []);
+
+  const nodeRelSize = useMemo(() => {
+    const count = graphData.nodes.length;
+    if (count <= 10) return 12;
+    if (count <= 50) return 10;
+    if (count <= 150) return 8;
+    if (count <= 300) return 6;
+    if (count <= 600) return 5;
+    return 4;
+  }, [graphData.nodes.length]);
 
   const legendItems = useMemo(
     () =>
@@ -100,6 +150,20 @@ function App() {
           <button type="button" onClick={fetchGraph} disabled={status === 'loading'}>
             {status === 'loading' ? 'Refreshing…' : 'Refresh'}
           </button>
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => triggerScan('/api/icmp-sweep', 'ICMP sweep')}
+          >
+            Run ICMP Sweep
+          </button>
+          <button
+            className="secondary"
+            type="button"
+            onClick={() => triggerScan('/api/arp-scan', 'ARP scan')}
+          >
+            Run ARP Scan
+          </button>
           <div className="status">
             <span className={`status-dot status-${status}`} />
             <span>
@@ -112,6 +176,7 @@ function App() {
           </div>
         </div>
       </header>
+      {scanStatus ? <div className="scan-status">{scanStatus}</div> : null}
 
       <div className="content">
         <aside className="sidebar">
@@ -151,12 +216,14 @@ function App() {
           </section>
         </aside>
 
-        <main className="graph-panel">
+        <main className="graph-panel" ref={graphContainerRef}>
           <ForceGraph2D
             ref={graphRef}
             graphData={graphData}
+            width={dimensions.width || 800}
+            height={dimensions.height || 600}
             backgroundColor="#0b0f1c"
-            nodeRelSize={6}
+            nodeRelSize={nodeRelSize}
             linkDirectionalParticles={2}
             linkDirectionalParticleWidth={2}
             linkDirectionalParticleSpeed={0.004}
