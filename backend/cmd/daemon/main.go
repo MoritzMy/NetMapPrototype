@@ -28,6 +28,7 @@ func main() {
 	addr := ":" + strconv.Itoa(int(*port))
 
 	g := graphing.NewGraph()
+	graphing.CreateLocalHostNetworkNodes(g)
 
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"syscall"
@@ -80,7 +81,7 @@ func ScanInterface(iface net.Interface, out chan<- ARPEvent) error {
 
 		go func(netw *net.IPNet) {
 			for res := range ch {
-				canonNetw := CanonicalIPNet(netw)
+				canonNetw := ip.CanonicalIPNet(netw)
 
 				out <- ARPEvent{
 					IP:      res.IP,
@@ -154,6 +155,9 @@ func RunARPScan(graph *graphing2.Graph) {
 	}()
 
 	for _, iface := range ifaces {
+		if strings.HasPrefix(iface.Name, "docker") {
+			continue
+		}
 		fmt.Printf("Starting ARP ScanInterface on interface %s\n", iface.Name)
 		err := ScanInterface(iface, in)
 		if err != nil {

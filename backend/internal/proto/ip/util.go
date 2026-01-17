@@ -5,6 +5,14 @@ import (
 	"net"
 )
 
+func CanonicalIPNet(ipNet *net.IPNet) *net.IPNet {
+	ip := ipNet.IP.Mask(ipNet.Mask)
+	return &net.IPNet{
+		IP:   ip,
+		Mask: ipNet.Mask,
+	}
+}
+
 func ValidIpsInNetwork(addr *net.IPNet) []net.IP {
 	var hosts []net.IP
 
