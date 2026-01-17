@@ -20,6 +20,7 @@ func main() {
 	flag.Parse()
 
 	graph := graphing.NewGraph()
+	graphing.CreateLocalHostNetworkNodes(graph)
 
 	if *arp {
 		arp_scan.RunARPScan(graph)

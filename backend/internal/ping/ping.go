@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -112,6 +113,9 @@ func RunICMPSweep(graph *graphing.Graph) {
 	}()
 
 	for _, iface := range ifaces {
+		if strings.HasPrefix(iface.Name, "docker") {
+			continue
+		}
 		fmt.Printf("Starting ICMP Sweep on interface %s\n", iface.Name)
 		if err := SweepInterface(iface, in); err != nil {
 			fmt.Printf("Error during ICMP Sweep on interface %s: %v\n", iface.Name, err)
