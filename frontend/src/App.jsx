@@ -98,9 +98,10 @@ const GraphView = memo(function GraphView({ graphData, dimensions, nodeRelSize, 
       nodeLabel={(node) => {
         const vendor = node.vendor || 'Unknown vendor';
         const ip = node.ip || node.id;
+        const mac = node.mac || 'Unknown MAC';
         const protocols = formatProtocols(node.protocols);
         const typeLabel = NODE_LABELS[node.type] || 'Unknown';
-        return `${ip}\n${vendor}\n${typeLabel}\nProtocols: ${protocols}`;
+        return `${ip}\n${mac}\n${vendor}\n${typeLabel}\nProtocols: ${protocols}`;
       }}
     />
   );
@@ -112,11 +113,12 @@ function App() {
   const [lastUpdated, setLastUpdated] = useState(null);
   const [scanStatus, setScanStatus] = useState('');
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [forceRefreshToken, setForceRefreshToken] = useState(0);
   const graphRef = useRef(null);
   const graphContainerRef = useRef(null);
   const nodeIdSetRef = useRef(new Set());
 
-  const fetchGraph = useCallback(async () => {
+  const fetchGraph = useCallback(async ({ force = false } = {}) => {
     setStatus('loading');
     try {
       const response = await fetch('/api/graph');
@@ -130,7 +132,7 @@ function App() {
       const existingIds = nodeIdSetRef.current;
       const hasNewNode = Array.from(nextIds).some((id) => !existingIds.has(id));
 
-      if (hasNewNode || existingIds.size === 0) {
+      if (force || hasNewNode || existingIds.size === 0) {
         nodeIdSetRef.current = nextIds;
         setGraphData(nextGraph);
       }
@@ -159,8 +161,8 @@ function App() {
   );
 
   useEffect(() => {
-    fetchGraph();
-    const interval = setInterval(fetchGraph, 10000);
+    fetchGraph({ force: true });
+    const interval = setInterval(() => fetchGraph({ force: false }), 10000);
     return () => clearInterval(interval);
   }, [fetchGraph]);
 
@@ -171,7 +173,7 @@ function App() {
         graphRef.current.zoomToFit(500, 120);
       });
     }
-  }, [graphData]);
+  }, [graphData, forceRefreshToken]);
 
   useLayoutEffect(() => {
     const container = graphContainerRef.current;
@@ -218,7 +220,14 @@ function App() {
           <p className="subtitle">Live topology view powered by the NetMap HTTP service.</p>
         </div>
         <div className="actions">
-          <button type="button" onClick={fetchGraph} disabled={status === 'loading'}>
+          <button
+            type="button"
+            onClick={() => {
+              setForceRefreshToken((value) => value + 1);
+              fetchGraph({ force: true });
+            }}
+            disabled={status === 'loading'}
+          >
             {status === 'loading' ? 'Refreshing…' : 'Refresh'}
           </button>
           <button
