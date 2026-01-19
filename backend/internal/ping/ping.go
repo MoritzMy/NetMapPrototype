@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -16,7 +17,7 @@ import (
 )
 
 // SweepInterface performs a Ping SweepInterface over the given List of Network Adresses on the specified network interface.
-func SweepInterface(iface net.Interface, out chan<- net.IP) error {
+func SweepInterface(iface net.Interface, out chan<- PingEvent) error {
 	var count atomic.Int64
 	ticker := time.NewTicker(time.Millisecond * 10) // Throttle request rate
 	defer ticker.Stop()
@@ -49,17 +50,21 @@ func SweepInterface(iface net.Interface, out chan<- net.IP) error {
 		}
 		defer pc.Close()
 
-		go func() {
+		go func(sourceIPNet *net.IPNet) {
 			replyChan := icmp.PingReplyListener(pc, ctx)
 			for reply := range replyChan {
 				if _, loaded := seen.LoadOrStore(reply.String(), true); loaded {
 					continue
 				}
-				out <- reply
+				netw := ip.CanonicalIPNet(sourceIPNet)
+				out <- PingEvent{
+					IP:      reply,
+					Network: netw,
+				}
 				fmt.Println("Host", reply, "is up!")
 				count.Add(1)
 			}
-		}()
+		}(sourceIPNet)
 
 		if sourceIPNet.IP.IsLoopback() || sourceIPNet.IP.To4() == nil || !ok {
 			continue
@@ -100,18 +105,24 @@ func RunICMPSweep(graph *graphing.Graph) {
 		fmt.Println("Error getting network interfaces:", err)
 		return
 	}
-	in := make(chan net.IP)
+	in := make(chan PingEvent)
 
 	go func() {
-		for ip := range in {
-			fmt.Printf("Discovered host - IP: %s\n", ip)
-			node := graph.GetOrCreateNode("ip:" + ip.String())
+		for ev := range in {
+			fmt.Printf("Discovered host - IP: %s\n", ev.IP.String())
+			node := graph.GetOrCreateNode("ip:" + ev.IP.String())
+			netwNode := graph.GetOrCreateNode("net:" + ev.Network.IP.String())
 			node.Protocols["icmp"] = true
+
+			graph.AddEdge(node.ID, netwNode.ID, graphing.EdgeMemberOf)
 		}
 		graph.LinkNetworkToGateway()
 	}()
 
 	for _, iface := range ifaces {
+		if strings.HasPrefix(iface.Name, "docker") {
+			continue
+		}
 		fmt.Printf("Starting ICMP Sweep on interface %s\n", iface.Name)
 		if err := SweepInterface(iface, in); err != nil {
 			fmt.Printf("Error during ICMP Sweep on interface %s: %v\n", iface.Name, err)

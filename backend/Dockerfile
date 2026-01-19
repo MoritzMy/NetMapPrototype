@@ -23,4 +23,4 @@ RUN chmod +x ./netmap-d
 
 EXPOSE 8080
 
-CMD ["./main.go"]
+CMD ["./netmap-d"]
