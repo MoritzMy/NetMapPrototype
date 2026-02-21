@@ -2,6 +2,8 @@
 
 ## About
 
+> [!WARNING]
+> This is a Prototype Version built for learning purposes
 
 NetMap is a network topology exploration tool that uses different Protocol Scans (ICMP, ARP, ...) to infer connections between devices within a network.
 
